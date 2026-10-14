@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Lava Cafe Menu</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background: linear-gradient(rgba(20, 15, 12, 0.85), rgba(20, 15, 12, 0.95)), 
+                        url('https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=1920&q=80') no-repeat center center fixed;
+            background-size: cover;
+            color: #f8f6f0;
+            min-height: 100vh;
+            width: 100%;
+            overflow-x: hidden;
+        }
+
+        .menu-header {
+            text-align: center;
+            padding: 25px 15px 10px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .lang-switch-container {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            z-index: 20;
+        }
+
+        .lang-btn {
+            padding: 6px 14px;
+            background-color: #d4a373;
+            color: #1a120b;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 700;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        .cafe-name {
+            font-size: 38px;
+            font-weight: 900;
+            color: #faedcd;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 4px 15px rgba(0,0,0,0.6);
+        }
+
+        .category-nav-wrapper {
+            width: 100%;
+            padding: 5px 10px;
+            display: flex;
+            justify-content: center;
+            position: relative;
+            z-index: 10;
+        }
+
+        .category-nav {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            white-space: nowrap;
+            padding: 10px 5px;
+            max-width: 100%;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+
+        .category-nav::-webkit-scrollbar {
+            display: none;
+        }
+
+        .nav-btn {
+            padding: 8px 16px;
+            background-color: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(10px);
+            color: #faedcd;
+            border: 1px solid rgba(250, 237, 205, 0.3);
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            flex-shrink: 0;
+            transition: all 0.2s ease;
+        }
+
+        .nav-btn.active {
+            background-color: #d4a373 !important;
+            color: #1a120b !important;
+            border-color: #d4a373 !important;
+            box-shadow: 0 4px 15px rgba(212, 163, 115, 0.5);
+            font-weight: 700;
+        }
+
+        .menu-container {
+            width: 100%;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 15px;
+            position: relative;
+            z-index: 5;
+        }
+
+        .menu-category {
+            display: none;
+        }
+
+        .menu-category.active {
+            display: block;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .category-title {
+            font-size: 24px;
+            font-weight: 800;
+            color: #faedcd;
+            margin-bottom: 15px;
+            text-align: center;
+            border-bottom: 2px solid rgba(212, 163, 115, 0.4);
+            padding-bottom: 6px;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+        }
+
+        .menu-items-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 10px;
+            width: 100%;
+        }
+
+        .menu-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 15px;
+            background: rgba(30, 22, 17, 0.9);
+            backdrop-filter: blur(8px);
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            border-right: 4px solid #d4a373;
+            border-left: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .item-name {
+            font-size: 15px;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .item-price {
+            font-size: 14px;
+            font-weight: 800;
+            color: #d4a373;
+            background: rgba(212, 163, 115, 0.12);
+            padding: 4px 8px;
+            border-radius: 8px;
+            white-space: nowrap;
+        }
+
+        @media (max-width: 600px) {
+            .cafe-name { font-size: 30px; }
+            .category-title { font-size: 20px; }
+            .menu-items-grid { grid-template-columns: 1fr; }
+        }
+
+        [dir="rtl"] .lang-switch-container { left: auto; right: 15px; }
+        [dir="rtl"] .menu-item { border-right: 4px solid #d4a373; border-left: 1px solid rgba(255,255,255,0.05); }
+        [dir="ltr"] .menu-item { border-left: 4px solid #d4a373; border-right: 1px solid rgba(255,255,255,0.05); }
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const buttons = document.querySelectorAll('.nav-btn');
+            const categories = document.querySelectorAll('.menu-category');
+
+            buttons.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const targetId = button.getAttribute('data-target');
+                    categories.forEach(cat => cat.classList.remove('active'));
+                    const targetCat = document.getElementById(targetId);
+                    if (targetCat) targetCat.classList.add('active');
+                    buttons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    button.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+                });
+            });
+
+            const langBtn = document.getElementById('lang-switch');
+            let currentLang = 'ar';
+            langBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                currentLang = (currentLang === 'ar') ? 'en' : 'ar';
+                document.querySelectorAll('[data-ar][data-en]').forEach(el => {
+                    el.textContent = el.getAttribute('data-' + currentLang);
+                });
+                langBtn.textContent = (currentLang === 'ar') ? 'English' : 'عربي';
+                document.documentElement.setAttribute('dir', (currentLang === 'ar') ? 'rtl' : 'ltr');
+                document.documentElement.lang = currentLang;
+            });
+        });
+    </script>
+</head>
+<body>
+    <header class="menu-header">
+        <div class="lang-switch-container"><button id="lang-switch" class="lang-btn">English</button></div>
+        <h1 class="cafe-name" data-ar="لافا" data-en="Lava">Lava</h1>
+    </header>
+
+    <div class="category-nav-wrapper">
+        <nav class="category-nav" id="category-nav">
+            <button class="nav-btn active" data-target="hot-coffee" data-ar="قهوة سخنة" data-en="Hot Coffee">Hot Coffee</button>
+            <button class="nav-btn" data-target="hot-drinks" data-ar="مشروبات ساخنة" data-en="Hot Drinks">Hot Drinks</button>
+            <button class="nav-btn" data-target="iced-coffee" data-ar="آيس كوفي" data-en="Iced Coffee">Iced Coffee</button>
+            <button class="nav-btn" data-target="fresh-juice" data-ar="عصائر فريش" data-en="Fresh Juice">Fresh Juice</button>
+            <button class="nav-btn" data-target="yogurt" data-ar="زبادي" data-en="Yogurt">Yogurt</button>
+<button class="nav-btn" data-target="mojito" data-ar="موهيتو" data-en="Mojito">Mojito</button>
+            <button class="nav-btn" data-target="desserts" data-ar="حلويات" data-en="Desserts">Desserts</button>
+
+
+            <button class="nav-btn" data-target="milkshakes" data-ar="ميلك شيك" data-en="Milkshakes">Milkshakes</button>
+            <button class="nav-btn" data-target="smoothies" data-ar="سموذي" data-en="Smoothies">Smoothies</button>
+            <button class="nav-btn" data-target="shisha" data-ar="شيشة" data-en="Shisha">Shisha</button>
+            <button class="nav-btn" data-target="soft-drinks" data-ar="مشروبات غازية" data-en="Soft Drinks">Soft Drinks</button>
+            <button class="nav-btn" data-target="extras" data-ar="إضافات" data-en="Extras">Extras</button>
+        </nav>
+    </div>
+
+    <main class="menu-container">
+        <!-- Hot Coffee -->
+        <section id="hot-coffee" class="menu-category active">
+            <h2 class="category-title" data-ar="قهوة سخنة" data-en="Hot Coffee">Hot Coffee</h2>
+            <div class="menu-items-grid">
+                <div class="menu-item"><span class="item-name" data-ar="قهوة تركي" data-en="Turkish Coffee">Turkish Coffee</span><span class="item-price">35 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="قهوة تركية دبل" data-en="Double Turkish Coffee">Double Turkish Coffee</span><span class="item-price">50 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="إسبريسو سينجل" data-en="Espresso Single">Espresso Single</span><span class="item-price">40 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="إسبريسو دبل" data-en="Espresso Double">Espresso Double</span><span class="item-price">55 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="نسكافيه بلاك" data-en="Nescafe Black">Nescafe Black</span><span class="item-price">35 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="نسكافيه حليب" data-en="Nescafe Milk">Nescafe Milk</span><span class="item-price">45 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="كابتشينو" data-en="Cappuccino">Cappuccino</span><span class="item-price">65 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="فلات وايت" data-en="Flat White">Flat White</span><span class="item-price">70 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="لاتيه" data-en="Latte">Latte</span><span class="item-price">65 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="موكا" data-en="Mocha">Mocha</span><span class="item-price">75 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="وايت موكا" data-en="White Mocha">White Mocha</span><span class="item-price">80 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="ماكياتو سينجل" data-en="Macchiato Single">Macchiato Single</span><span class="item-price">45 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="ماكياتو دبل" data-en="Macchiato Double">Macchiato Double</span><span class="item-price">60 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="كاراميل ماكياتو" data-en="Caramel Macchiato">Caramel Macchiato</span><span class="item-price">75 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="كورتادو" data-en="Cortado">Cortado</span><span class="item-price">55 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="بيكولو" data-en="Piccolo">Piccolo</span><span class="item-price">50 EGP</span></div>
+            </div>
+        </section>
+
+        <!-- Hot Drinks -->
+        <section id="hot-drinks" class="menu-category">
+            <h2 class="category-title" data-ar="مشروبات ساخنة" data-en="Hot Drinks">Hot Drinks</h2>
+            <div class="menu-items-grid">
+                <div class="menu-item"><span class="item-name" data-ar="شاي باكت" data-en="Tea Bag">Tea Bag</span><span class="item-price">25 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="شاي كشري" data-en="Koshary Tea">Koshary Tea</span><span class="item-price">20 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="شاي بلبن" data-en="Tea with Milk">Tea with Milk</span><span class="item-price">35 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="شاي أخضر" data-en="Green Tea">Green Tea</span><span class="item-price">30 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="يانسون" data-en="Anise">Anise</span><span class="item-price">25 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="قرفة" data-en="Cinnamon">Cinnamon</span><span class="item-price">30 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="شاي قرنفل" data-en="Clove Tea">Clove Tea</span><span class="item-price">30 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="نعناع سخن" data-en="Hot Mint">Hot Mint</span><span class="item-price">25 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="ليمون سخن" data-en="Hot Lemon">Hot Lemon</span><span class="item-price">30 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="جنزبيل بلمون" data-en="Ginger with Lemon">Ginger with Lemon</span><span class="item-price">35 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="سحلب" data-en="Sahlab">Sahlab</span><span class="item-price">45 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="لبن دافئ" data-en="Warm Milk">Warm Milk</span><span class="item-price">30 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="كركديه ساخن" data-en="Hot Karkadeh">Hot Karkadeh</span><span class="item-price">30 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="كوكتيل أعشاب" data-en="Herbal Cocktail">Herbal Cocktail</span><span class="item-price">40 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="هوت سايدر" data-en="Hot Cider">Hot Cider</span><span class="item-price">45 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="شاي كرك" data-en="Karak Tea">Karak Tea</span><span class="item-price">40 EGP</span></div>
+
+            </div>
+        </section>
+
+        <!-- Iced Coffee -->
+        <section id="iced-coffee" class="menu-category">
+            <h2 class="category-title" data-ar="آيس كوفي" data-en="Iced Coffee">Iced Coffee</h2>
+            <div class="menu-items-grid">
+                <div class="menu-item"><span class="item-name" data-ar="آيس لاتيه" data-en="Iced Latte">Iced Latte</span><span class="item-price">70 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="آيس موكا" data-en="Iced Mocha">Iced Mocha</span><span class="item-price">80 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="آيس وايت موكا" data-en="Iced White Mocha">Iced White Mocha</span><span class="item-price">85 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="فرابيه كاراميل" data-en="Caramel Frappe">Caramel Frappe</span><span class="item-price">85 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="فرابيه شوكليت" data-en="Chocolate Frappe">Chocolate Frappe</span><span class="item-price">85 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="فرابيه لوتس" data-en="Lotus Frappe">Lotus Frappe</span><span class="item-price">95 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="آيس كوفي نسكافيه" data-en="Iced Nescafe">Iced Nescafe</span><span class="item-price">60 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="إسبريسو أفوكادو" data-en="Espresso Affogato">Espresso Affogato</span><span class="item-price">75 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="وايت موكا" data-en="White Mocha">White Mocha</span><span class="item-price">120 EGP</span></div>
+<div class="menu-item"><span class="item-name" data-ar="وايت موكا فرابيه" data-en="white moca frappe">white moca frappe</span><span class="item-price">120 EGP</span></div>
+<div class="menu-item"><span class="item-name" data-ar="موكا فرابيه" data-en="moca frappe">moca frappe</span><span class="item-price">120 EGP</span></div>
+<div class="menu-item"><span class="item-name" data-ar="فرابيه بستاشيو"" data-en="Pistachio frappe">Pistachio frappe</span><span class="item-price">140 EGP</span></div>
+
+            </div>
+        </section>
+
+        <!-- Fresh Juice -->
+        <section id="fresh-juice" class="menu-category">
+            <h2 class="category-title" data-ar="عصائر فريش" data-en="Fresh Juice">Fresh Juice</h2>
+            <div class="menu-items-grid">
+                <div class="menu-item"><span class="item-name" data-ar="ليمون" data-en="Lemon">Lemon</span><span class="item-price">45 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="ليمون نعناع" data-en="Lemon Mint">Lemon Mint</span><span class="item-price">50 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="مانجا" data-en="Mango">Mango</span><span class="item-price">60 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="جوافة" data-en="Guava">Guava</span><span class="item-price">50 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="فراولة" data-en="Strawberry">Strawberry</span><span class="item-price">55 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="برتقال" data-en="Orange">Orange</span><span class="item-price">50 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="موز باللبن" data-en="Banana with Milk">Banana with Milk</span><span class="item-price">55 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="جوافة باللبن" data-en="Guava with Milk">Guava with Milk</span><span class="item-price">60 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="عناب ساقع" data-en="Cold Karkadeh">Cold Karkadeh</span><span class="item-price">35 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="كوكتيل فلوريدا" data-en="Florida Cocktail">Florida Cocktail</span><span class="item-price">65 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="مانجا باشن" data-en="Mango Passion">Mango Passion</span><span class="item-price">70 EGP</span></div>
+<div class="menu-item"><span class="item-name" data-ar="مانجا خوخ" data-en="Mango Peach">Mango Peach</span><span class="item-price">70 EGP</span></div>
+<div class="menu-item"><span class="item-name" data-ar="مانجا كيوي" data-en="Mango Kiwi">Mango Kiwi</span><span class="item-price">75 EGP</span></div>
+<div class="menu-item"><span class="item-name" data-ar="مانجا نعناع" data-en="Mango Mint">Mango Mint</span><span class="item-price">65 EGP</span></div>
+<div class="menu-item"><span class="item-name" data-ar="جوافة نعناع" data-en="Guava Mint">Guava Mint</span><span class="item-price">55 EGP</span></div>
+<div class="menu-item"><span class="item-name" data-ar="ليمون باللبن" data-en="Lemon with Milk">Lemon with Milk</span><span class="item-price">50 EGP</span></div>
+
+            </div>
+        </section>
+        
+                <!-- mojito -->
+        <section id="mojito" class="menu-category">
+            <h2 class="category-title" data-ar="موخيتو" data-en="Mojito">mojito</h2>
+            <div class="menu-items-grid">
+                <!-- ضيف الأتمات (Items) بتاعتك هنا بالطريقة دي -->
+                <div class="menu-item"><span class="classic mojito" data-ar="كلاسيك موخيتو" data-en="classic mojito">classic mojito</span><span class="item-price">00 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="بلو هاواي" data-en="Blue Hawaii">Blue Hawaii</span><span class="item-price">70 EGP</span></div>
+<div class="menu-item"><span class="item-name" data-ar="بلو سكاي" data-en="Blue Sky">Blue Sky</span><span class="item-price">70 EGP</span></div>
+<div class="menu-item"><span class="item-name" data-ar="موهيتو بلوبيري" data-en="Blueberry Mojito">Blueberry Mojito</span><span class="item-price">65 EGP</span></div>
+<div class="menu-item"><span class="item-name" data-ar="إيطاليان سودا" data-en="Italian Soda">Italian Soda</span><span class="item-price">65 EGP</span></div>
+<div class="menu-item"><span class="item-name" data-ar="ميكس بيري سودا" data-en="Mix Berry Soda">Mix Berry Soda</span><span class="item-price">70 EGP</span></div>
+<div class="menu-item"><span class="item-name" data-ar="موهيتو ريد بول" data-en="Red Bull Mojito">Red Bull Mojito</span><span class="item-price">90 EGP</span></div>
+<div class="menu-item"><span class="item-name" data-ar="سكوتش مينت" data-en="Scotch Mint">Scotch Mint</span><span class="item-price">65 EGP</span></div>
+<div class="menu-item"><span class="item-name" data-ar="سان شاين" data-en="Sunshine">Sunshine</span><span class="item-price">65 EGP</span></div>
+<div class="menu-item"><span class="item-name" data-ar="إلكتريك" data-en="Electric">Electric</span><span class="item-price">75 EGP</span></div>
+<div class="menu-item"><span class="item-name" data-ar="سان رايز" data-en="Sunrise">Sunrise</span><span class="item-price">65 EGP</span></div>
+
+            </div>
+        </section>
+
+        
+                <!-- Yogurt Category -->
+        <section id="yogurt" class="menu-category">
+            <h2 class="category-title" data-ar="زبادي" data-en="Yogurt">Yogurt</h2>
+            <div class="menu-items-grid">
+                <div class="menu-item"><span class="item-name" data-ar="زبادي موز" data-en="Banana Yogurt">Banana Yogurt</span><span class="item-price">120 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="زبادي عسل" data-en="Honey Yogurt">Honey Yogurt</span><span class="item-price">100 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="زبادي خوخ" data-en="Peach Yogurt">Peach Yogurt</span><span class="item-price">120 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="زبادي باشن" data-en="Passion Fruit Yogurt">Passion Fruit Yogurt</span><span class="item-price">120 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="زبادي كيوي" data-en="Kiwi Yogurt">Kiwi Yogurt</span><span class="item-price">120 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="زبادي توت" data-en="Blueberry Yogurt">Blueberry Yogurt</span><span class="item-price">120 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="زبادي فراولة" data-en="Strawberry Yogurt">Strawberry Yogurt</span><span class="item-price">120 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="زبادي مانجا" data-en="Mango Yogurt">Mango Yogurt</span><span class="item-price">120 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="زبادي فواكه" data-en="Fruit Yogurt">Fruit Yogurt</span><span class="item-price">120 EGP</span></div>
+
+            </div>
+        </section>
+
+        
+
+        <!-- Milkshakes -->
+        <section id="milkshakes" class="menu-category">
+            <h2 class="category-title" data-ar="ميلك شيك" data-en="Milkshakes">Milkshakes</h2>
+            <div class="menu-items-grid">
+                <div class="menu-item"><span class="item-name" data-ar="ميلك شيك فانيليا" data-en="Milkshake Vanilla">Milkshake Vanilla</span><span class="item-price">75 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="ميلك شيك شوكولاتة" data-en="Milkshake Chocolate">Milkshake Chocolate</span><span class="item-price">80 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="ميلك شيك مانجا" data-en="Milkshake Mango">Milkshake Mango</span><span class="item-price">85 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="ميلك شيك فراولة" data-en="Milkshake Strawberry">Milkshake Strawberry</span><span class="item-price">80 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="ميلك شيك موز" data-en="Milkshake Banana">Milkshake Banana</span><span class="item-price">75 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="ميلك شيك أوريو" data-en="Milkshake Oreo">Milkshake Oreo</span><span class="item-price">85 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="ميلك شيك نوتيلا" data-en="Milkshake Nutella">Milkshake Nutella</span><span class="item-price">95 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="ميلك شيك لوتس" data-en="Milkshake Lotus">Milkshake Lotus</span><span class="item-price">95 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="ميلك شيك كاراميل" data-en="Milkshake Caramel">Milkshake Caramel</span><span class="item-price">85 EGP</span></div>
+            </div>
+        </section>
+
+                <!-- Smoothies -->
+        <section id="smoothies" class="menu-category">
+            <h2 class="category-title" data-ar="سموذي" data-en="Smoothies">Smoothies</h2>
+            <div class="menu-items-grid">
+                <div class="menu-item"><span class="item-name" data-ar="سموذي ليمون" data-en="Lemon Smoothie">Lemon Smoothie</span><span class="item-price">55 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="سموذي ليمون نعناع" data-en="Lemon Mint Smoothie">Lemon Mint Smoothie</span><span class="item-price">60 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="سموذي مانجا" data-en="Mango Smoothie">Mango Smoothie</span><span class="item-price">70 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="سموذي برتقال" data-en="Orange Smoothie">Orange Smoothie</span><span class="item-price">65 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="سموذي كيوي" data-en="Kiwi Smoothie">Kiwi Smoothie</span><span class="item-price">75 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="سموذي فراولة" data-en="Strawberry Smoothie">Strawberry Smoothie</span><span class="item-price">70 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="سموذي توت أزرق" data-en="Blueberry Smoothie">Blueberry Smoothie</span><span class="item-price">85 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="سموذي مانجا خوخ" data-en="Mango Peach Smoothie">Mango Peach Smoothie</span><span class="item-price">75 EGP</span></div>
+<div class="menu-item"><span class="item-name" data-ar="سموذي مانجا كيوي" data-en="Mango Kiwi Smoothie">Mango Kiwi Smoothie</span><span class="item-price">80 EGP</span></div>
+<div class="menu-item"><span class="item-name" data-ar="سموذي مانجا باشن" data-en="Mango Passion Smoothie">Mango Passion Smoothie</span><span class="item-price">80 EGP</span></div>
+
+            </div>
+            
+        </section>
+        
+                <!-- Desserts Category -->
+        <section id="desserts" class="menu-category">
+            <h2 class="category-title" data-ar="حلويات" data-en="Desserts">Desserts</h2>
+            <div class="menu-items-grid">
+                <!-- الأصناف المضافة -->
+                <div class="menu-item"><span class="item-name" data-ar="مولتن كيك" data-en="Molten Cake">Molten Cake</span><span class="item-price">75 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="إكلير" data-en="Eclair">Eclair</span><span class="item-price">50 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="تشيز كيك" data-en="Cheesecake">Cheesecake</span><span class="item-price">70 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="ريد فيلفيت" data-en="Red Velvet">Red Velvet</span><span class="item-price">65 EGP</span></div>
+            </div>
+        </section>
+
+
+        <!-- Shisha -->
+        <section id="shisha" class="menu-category">
+            <h2 class="category-title" data-ar="شيشة" data-en="Shisha">Shisha</h2>
+            <div class="menu-items-grid">
+                <div class="menu-item"><span class="item-name" data-ar="ميكس لافا" data-en="Mix Lava">Mix Lava</span><span class="item-price">60 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="فاخر" data-en="Fakher">Fakher</span><span class="item-price">50 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="سلوم" data-en="Salloum">Salloum</span><span class="item-price">40 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="قص" data-en="Qass">Qass</span><span class="item-price">40 EGP</span></div>
+            </div>
+        </section>
+
+        <!-- Soft Drinks -->
+        <section id="soft-drinks" class="menu-category">
+            <h2 class="category-title" data-ar="مشروبات غازية" data-en="Soft Drinks">Soft Drinks</h2>
+            <div class="menu-items-grid">
+                <div class="menu-item"><span class="item-name" data-ar="بيبسي" data-en="Pepsi">Pepsi</span><span class="item-price">30 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="بيبسي دايت" data-en="Pepsi Diet">Pepsi Diet</span><span class="item-price">30 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="في كولا" data-en="V Cola">V Cola</span><span class="item-price">25 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="في كولا دايت" data-en="V Cola Diet">V Cola Diet</span><span class="item-price">25 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="بيريل" data-en="Birell">Birell</span><span class="item-price">35 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="شويبس رمان" data-en="Schweppes Pomegranate">Schweppes Pomegranate</span><span class="item-price">35 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="فيروز أناناس" data-en="Fayrouz Pineapple">Fayrouz Pineapple</span><span class="item-price">35 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="تويست" data-en="Twist">Twist</span><span class="item-price">35 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="فيوري" data-en="Fury">Fury</span><span class="item-price">35 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="ريد بول" data-en="Red Bull">Red Bull</span><span class="item-price">70 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="سڤن" data-en="7up">7up</span><span class="item-price">65 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="مياه" data-en="Water">Water</span><span class="item-price">15 EGP</span></div>
+            </div>
+        </section>
+
+        <!-- Extras -->
+        <section id="extras" class="menu-category">
+            <h2 class="category-title" data-ar="إضافات" data-en="Extras">Extras</h2>
+            <div class="menu-items-grid">
+                <div class="menu-item"><span class="item-name" data-ar="إضافة آيس كريم" data-en="Add Ice Cream">Add Ice Cream</span><span class="item-price">20 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="إضافة صوص" data-en="Add Sauce">Add Sauce</span><span class="item-price">15 EGP</span></div>
+                <div class="menu-item"><span class="item-name" data-ar="إضافة حليب" data-en="Add Milk">Add Milk</span><span class="item-price">15 EGP</span></div>
+            </div>
+        </section>
+    </main>
+</body>
+</html>
+
+                
